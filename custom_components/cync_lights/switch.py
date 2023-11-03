@@ -56,20 +56,14 @@ class CyncPlugEntity(SwitchEntity):
     @property
     def device_info(self) -> DeviceInfo:
         """Return device registry information for this entity."""
+        device_name = (
+            self.cync_switch.room.name + f"({self.cync_switch.home_name})"
+        )
         return DeviceInfo(
-            identifiers={
-                (
-                    DOMAIN,
-                    (
-                        f"{self.cync_switch.room.name} ({self.cync_switch.home_name})"
-                    ),
-                )
-            },
+            identifiers={(DOMAIN, device_name)},
             manufacturer="Cync by Savant",
-            name=(
-                f"{self.cync_switch.room.name} ({self.cync_switch.home_name})"
-            ),
-            suggested_area=f"{self.cync_switch.room.name}",
+            name=(device_name),
+            suggested_area=self.cync_switch.room.name,
         )
 
     @property

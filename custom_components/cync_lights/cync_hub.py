@@ -10,11 +10,12 @@ import aiohttp
 
 _LOGGER = logging.getLogger(__name__)
 
-API_AUTH = "https://api.gelighting.com/v2/user_auth"
-API_REQUEST_CODE = "https://api.gelighting.com/v2/two_factor/email/verifycode"
-API_2FACTOR_AUTH = "https://api.gelighting.com/v2/user_auth/two_factor"
-API_DEVICES = "https://api.gelighting.com/v2/user/{user}/subscribe/devices"
-API_DEVICE_INFO = "https://api.gelighting.com/v2/product/{product_id}/device/{device_id}/property"
+API_BASE = "https://api.gelighting.com/v2"
+API_AUTH = f"{API_BASE}/user_auth"
+API_REQUEST_CODE = f"{API_BASE}/two_factor/email/verifycode"
+API_2FACTOR_AUTH = f"{API_BASE}/user_auth/two_factor"
+API_DEVICES = f"{API_BASE}/user/" + "{user}/subscribe/devices"
+API_DEVICE_INFO = "product/{product_id}/device/{device_id}/property"
 
 Capabilities = {
     "ONOFF": [
@@ -457,7 +458,8 @@ class CyncHub:
             home_controllers
         ) in (
             self.home_controllers.values()
-        ):  # send packets to server to generate data to be read which will initiate shutdown
+        ):  # send packets to server to generate data to be
+            # read which will initiate shutdown
             for controller in home_controllers:
                 seq = self.get_seq_num()
                 state_request = (
@@ -471,30 +473,34 @@ class CyncHub:
                 )
 
     async def _connect(self):
+        uri = "cm.gelighting.com"
+        port = 23778
+        ssl_port = 23779
+
         while not self.shutting_down:
             try:
                 context = ssl.create_default_context()
                 try:
                     self.reader, self.writer = await asyncio.open_connection(
-                        "cm.gelighting.com", 23779, ssl=context
+                        uri, ssl_port, ssl=context
                     )
-                except Exception as e:
+                except Exception as exc:
+                    _LOGGER.warn(str(type(exc).__name__) + ": " + str(exc))
                     context.check_hostname = False
                     context.verify_mode = ssl.CERT_NONE
                     try:
                         self.reader, self.writer = (
                             await asyncio.open_connection(
-                                "cm.gelighting.com", 23779, ssl=context
+                                uri, ssl_port, ssl=context
                             )
                         )
-                    except Exception as e:
+                    except Exception as exc:
+                        _LOGGER.warn(str(type(exc).__name__) + ": " + str(exc))
                         self.reader, self.writer = (
-                            await asyncio.open_connection(
-                                "cm.gelighting.com", 23778
-                            )
+                            await asyncio.open_connection(uri, port)
                         )
-            except Exception as e:
-                _LOGGER.error(str(type(e).__name__) + ": " + str(e))
+            except Exception as exc:
+                _LOGGER.error(str(type(exc).__name__) + ": " + str(exc))
                 await asyncio.sleep(5)
             else:
                 read_tcp_messages = asyncio.create_task(
@@ -523,11 +529,19 @@ class CyncHub:
                     for task in done:
                         name = task.get_name()
                         exception = task.exception()
+                        _LOGGER.error(
+                            f"Encountered an error in task '{name}'"
+                            + str(type(exception).__name__)
+                            + ": "
+                            + str(exception)
+                        )
+
                         try:
-                            result = task.result()
-                        except Exception as e:
+                            # TODO should we use this result?
+                            task.result()
+                        except Exception as exc:
                             _LOGGER.error(
-                                str(type(e).__name__) + ": " + str(e)
+                                str(type(exc).__name__) + ": " + str(exc)
                             )
                     for task in pending:
                         task.cancel()
@@ -539,8 +553,8 @@ class CyncHub:
                         await asyncio.sleep(15)
                     else:
                         _LOGGER.debug("Cync client shutting down")
-                except Exception as e:
-                    _LOGGER.error(str(type(e).__name__) + ": " + str(e))
+                except Exception as exc:
+                    _LOGGER.error(str(type(exc).__name__) + ": " + str(exc))
 
     async def _read_tcp_messages(self):
         self.writer.write(self.login_code)
@@ -818,8 +832,8 @@ class CyncHub:
                             )
                             if command_received is not None:
                                 command_received(seq)
-                except Exception as e:
-                    _LOGGER.error(str(type(e).__name__) + ": " + str(e))
+                except Exception as exc:
+                    _LOGGER.error(str(type(exc).__name__) + ": " + str(exc))
                 data = data[packet_length + 5 :]
         raise ShuttingDown
 
@@ -1036,7 +1050,11 @@ class CyncRoom:
         self._command_retry_time = 5
 
     def initialize(self):
-        """Initialization of supported features and registration of update function for all switches and subgroups in the room"""
+        """
+        Initialization of supported features
+        and registration of update function for
+        all switches and subgroups in the room
+        """
         self.switches_support_brightness = [
             device_id
             for device_id in self.switches
@@ -1213,7 +1231,10 @@ class CyncRoom:
                 update_received = True
 
     def command_received(self, seq):
-        """Remove command from hub.pending_commands when a reply is received from Cync server"""
+        """
+        Remove command from hub.pending_commands
+        when a reply is received from Cync server
+        """
         if self.hub.pending_commands.get(seq) is not None:
             self.hub.pending_commands.pop(seq)
 
@@ -1517,12 +1538,18 @@ class CyncSwitch:
                 update_received = True
 
     def command_received(self, seq):
-        """Remove command from hub.pending_commands when a reply is received from Cync server"""
+        """
+        Remove command from hub.pending_commands
+        when a reply is received from Cync server
+        """
         if self.hub.pending_commands.get(seq) is not None:
             self.hub.pending_commands.pop(seq)
 
     def update_switch(self, state, brightness, color_temp, rgb):
-        """Update the state of the switch as updates are received from the Cync server"""
+        """
+        Update the state of the switch as updates
+        are received from the Cync server
+        """
         self.update_received = True
         if (
             self.power_state != state
@@ -1543,13 +1570,17 @@ class CyncSwitch:
                 self._update_parent_room()
 
     def update_controllers(self):
-        """Update the list of responsive, Wi-Fi connected controller devices"""
+        """
+        Update the list of responsive,
+        Wi-Fi connected controller devices
+        """
         connected_devices = self.hub.connected_devices[self.home_id]
         controllers = []
         if len(connected_devices) > 0:
             if int(self.switch_id) > 0:
                 if self.device_id in connected_devices:
-                    # if this device is connected, make this the first available controller
+                    # if this device is connected,
+                    # make this the first available controller
                     controllers.append(self.switch_id)
             if self.room:
                 controllers = controllers + [

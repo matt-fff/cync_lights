@@ -70,21 +70,21 @@ class CyncRoomEntity(LightEntity):
     @property
     def device_info(self) -> DeviceInfo:
         """Return device registry information for this entity."""
+
+        device_name = (
+            self.room.parent_room
+            if self.room.is_subgroup
+            else f"{self.room.name} ({self.room.home_name})"
+        )
+
         return DeviceInfo(
-            identifiers={
-                (
-                    DOMAIN,
-                    (
-                        f"{self.room.parent_room if self.room.is_subgroup else self.room.name} ({self.room.home_name})"
-                    ),
-                )
-            },
+            identifiers={(DOMAIN, device_name)},
             manufacturer="Cync by Savant",
-            name=(
-                f"{self.room.parent_room if self.room.is_subgroup else self.room.name} ({self.room.home_name})"
-            ),
+            name=device_name,
             suggested_area=(
-                f"{self.room.parent_room if self.room.is_subgroup else self.room.name}"
+                self.room.parent_room
+                if self.room.is_subgroup
+                else self.room.name
             ),
         )
 
@@ -208,20 +208,14 @@ class CyncSwitchEntity(LightEntity):
     @property
     def device_info(self) -> DeviceInfo:
         """Return device registry information for this entity."""
+        device_name = (
+            self.cync_switch.room.name + f"({self.cync_switch.home_name})"
+        )
         return DeviceInfo(
-            identifiers={
-                (
-                    DOMAIN,
-                    (
-                        f"{self.cync_switch.room.name} ({self.cync_switch.home_name})"
-                    ),
-                )
-            },
+            identifiers={(DOMAIN, device_name)},
             manufacturer="Cync by Savant",
-            name=(
-                f"{self.cync_switch.room.name} ({self.cync_switch.home_name})"
-            ),
-            suggested_area=f"{self.cync_switch.room.name}",
+            name=(device_name),
+            suggested_area=self.cync_switch.room.name,
         )
 
     @property

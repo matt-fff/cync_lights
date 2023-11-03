@@ -188,7 +188,9 @@ class CyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ): cv.multi_select(
                     {
                         room: (
-                            f'{room_info["name"]} ({room_info.get("parent_room","")}:{room_info["home_name"]})'
+                            f'{room_info["name"]} '
+                            f'({room_info.get("parent_room","")}:'
+                            f'{room_info["home_name"]})'
                         )
                         for room, room_info in self.data["data"][
                             "cync_config"
@@ -212,7 +214,9 @@ class CyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ): cv.multi_select(
                     {
                         switch_id: (
-                            f'{sw_info["name"]} ({sw_info["room_name"]}:{sw_info["home_name"]})'
+                            f'{sw_info["name"]} '
+                            f'({sw_info["room_name"]}:'
+                            f'{sw_info["home_name"]})'
                         )
                         for switch_id, sw_info in self.data["data"][
                             "cync_config"
@@ -235,7 +239,9 @@ class CyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ): cv.multi_select(
                     {
                         device_id: (
-                            f'{device_info["name"]} ({device_info["room_name"]}:{device_info["home_name"]})'
+                            f'{device_info["name"]} '
+                            f'({device_info["room_name"]}:'
+                            f'{device_info["home_name"]})'
                         )
                         for device_id, device_info in self.data["data"][
                             "cync_config"
@@ -257,7 +263,9 @@ class CyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ): cv.multi_select(
                     {
                         device_id: (
-                            f'{device_info["name"]} ({device_info["room_name"]}:{device_info["home_name"]})'
+                            f'{device_info["name"]} '
+                            f'({device_info["room_name"]}:'
+                            f'{device_info["home_name"]})'
                         )
                         for device_id, device_info in self.data["data"][
                             "cync_config"
@@ -431,7 +439,9 @@ class CyncOptionsFlowHandler(config_entries.OptionsFlow):
                 ): cv.multi_select(
                     {
                         room: (
-                            f'{room_info["name"]} ({room_info.get("parent_room","")}:{room_info["home_name"]})'
+                            f'{room_info["name"]} '
+                            f'({room_info.get("parent_room","")}:'
+                            f'{room_info["home_name"]})'
                         )
                         for room, room_info in self.entry.data["cync_config"][
                             "rooms"
@@ -454,7 +464,9 @@ class CyncOptionsFlowHandler(config_entries.OptionsFlow):
                 ): cv.multi_select(
                     {
                         switch_id: (
-                            f'{sw_info["name"]} ({sw_info["room_name"]}:{sw_info["home_name"]})'
+                            f'{sw_info["name"]} '
+                            f'({sw_info["room_name"]}:'
+                            f'{sw_info["home_name"]})'
                         )
                         for switch_id, sw_info in self.entry.data[
                             "cync_config"
@@ -476,7 +488,9 @@ class CyncOptionsFlowHandler(config_entries.OptionsFlow):
                 ): cv.multi_select(
                     {
                         device_id: (
-                            f'{device_info["name"]} ({device_info["room_name"]}:{device_info["home_name"]})'
+                            f'{device_info["name"]} '
+                            f'({device_info["room_name"]}:'
+                            f'{device_info["home_name"]})'
                         )
                         for device_id, device_info in self.entry.data[
                             "cync_config"
@@ -499,7 +513,9 @@ class CyncOptionsFlowHandler(config_entries.OptionsFlow):
                 ): cv.multi_select(
                     {
                         device_id: (
-                            f'{device_info["name"]} ({device_info["room_name"]}:{device_info["home_name"]})'
+                            f'{device_info["name"]} '
+                            f'({device_info["room_name"]}:'
+                            f'{device_info["home_name"]})'
                         )
                         for device_id, device_info in self.entry.data[
                             "cync_config"

@@ -6,7 +6,7 @@ authors = [
     { name = "nikshriv" },
     { name = "Matt White", email = "mail@matt-w.net" }
 ]
-dependencies = []
+dependencies = ["homeassistant~=2021.12.10"]
 readme = "README.md"
 requires-python = ">= 3.8"
 
@@ -16,17 +16,20 @@ build-backend = "hatchling.build"
 
 [tool.rye]
 managed = true
-dev-dependencies = ["black~=23.10.1", "flake8~=5.0.4", "pyright~=1.1.334", "ruff~=0.1.4", "isort~=5.12.0", "bandit~=1.7.5", "pylint~=3.0.2"]
+dev-dependencies = ["black~=23.10.1", "flake8~=5.0.4", "pyright~=1.1.334", "ruff~=0.1.4", "isort~=5.12.0", "bandit~=1.7.5", "pylint~=3.0.2", "pyproject-flake8==5.0.4"]
 
 [tool.rye.scripts]
 "fmt:black" = "black . --preview -l 79"
 "fmt:isort" = "isort custom_components/"
 "lint:ruff" = "ruff check custom_components"
-"lint:flake8" = "flake8 custom_components/"
+"lint:flake8" = "pflake8 custom_components/"
 "lint:bandit" = "bandit -r custom_components/"
 "lint:pylint" = "pylint custom_components/"
 "lint:pyright" = "pyright"
 quality = { chain = [ "fmt:isort", "fmt:black", "lint:ruff", "lint:flake8", "lint:pyright", "lint:bandit", "lint:pylint" ] }
+
+[tool.flake8]
+extend-ignore = ["E203"]
 
 [tool.black]
 skip-numeric-underscore-normalization = true

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
@@ -67,20 +65,19 @@ class CyncMotionSensorEntity(BinarySensorEntity):
     @property
     def device_info(self) -> DeviceInfo:
         """Return device registry information for this entity."""
+        device_name = (
+            self.motion_sensor.room.name + f" ({self.motion_sensor.home_name})"
+        )
         return DeviceInfo(
             identifiers={
                 (
                     DOMAIN,
-                    (
-                        f"{self.motion_sensor.room.name} ({self.motion_sensor.home_name})"
-                    ),
+                    device_name,
                 )
             },
             manufacturer="Cync by Savant",
-            name=(
-                f"{self.motion_sensor.room.name} ({self.motion_sensor.home_name})"
-            ),
-            suggested_area=f"{self.motion_sensor.room.name}",
+            name=(device_name),
+            suggested_area=self.motion_sensor.room.name,
         )
 
     @property
@@ -124,20 +121,20 @@ class CyncAmbientLightSensorEntity(BinarySensorEntity):
     @property
     def device_info(self) -> DeviceInfo:
         """Return device registry information for this entity."""
+        device_name = (
+            self.ambient_light_sensor.room.name
+            + f" ({self.ambient_light_sensor.home_name})"
+        )
         return DeviceInfo(
             identifiers={
                 (
                     DOMAIN,
-                    (
-                        f"{self.ambient_light_sensor.room.name} ({self.ambient_light_sensor.home_name})"
-                    ),
+                    device_name,
                 )
             },
             manufacturer="Cync by Savant",
-            name=(
-                f"{self.ambient_light_sensor.room.name} ({self.ambient_light_sensor.home_name})"
-            ),
-            suggested_area=f"{self.ambient_light_sensor.room.name}",
+            name=(device_name),
+            suggested_area=self.ambient_light_sensor.room.name,
         )
 
     @property
