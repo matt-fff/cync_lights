@@ -1,3 +1,9 @@
+# cync-lights
+
+Forked from the original, whose README is retained below.
+
+I was running into some trouble running the integration and wanted to take a look and see if I could work it out.
+
 Cync Lights Custom Integration
 ============
 Control and monitor the state of your Cync Light switches, bulbs, fan switches and plugs. This integration is no longer dependent on Google Home. The integration requires that you have at least one Wifi connected light switch, bulb, fan switch, or plug in your system to allow for control (including bluetooth only devices). The integration will not work if you have only bluetooth devices without a WiFi connected device in your system. 
@@ -16,3 +22,5 @@ If anyone has devices that don't work with this integration (aside from thermost
 5. Select the rooms, individual switches, motion sensors, and ambient light sensors you would like to include
 
 https://www.buymeacoffee.com/nikshriv
+Describe your project here.
+

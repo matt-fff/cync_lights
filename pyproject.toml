@@ -1,0 +1,82 @@
+[project]
+name = "cync-lights"
+version = "0.1.0"
+description = "Home Assistant Integration for controlling Cync switches, plugs, and bulbs"
+authors = [
+    { name = "nikshriv" },
+    { name = "Matt White", email = "mail@matt-w.net" }
+]
+dependencies = []
+readme = "README.md"
+requires-python = ">= 3.8"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = ["black~=23.10.1", "flake8~=5.0.4", "pyright~=1.1.334", "ruff~=0.1.4", "isort~=5.12.0", "bandit~=1.7.5", "pylint~=3.0.2"]
+
+[tool.rye.scripts]
+"fmt:black" = "black . --preview -l 79"
+"fmt:isort" = "isort custom_components/"
+"lint:ruff" = "ruff check custom_components"
+"lint:flake8" = "flake8 custom_components/"
+"lint:bandit" = "bandit -r custom_components/"
+"lint:pylint" = "pylint custom_components/"
+"lint:pyright" = "pyright"
+quality = { chain = [ "fmt:isort", "fmt:black", "lint:ruff", "lint:flake8", "lint:pyright", "lint:bandit", "lint:pylint" ] }
+
+[tool.black]
+skip-numeric-underscore-normalization = true
+line-length = 79
+target-version = ['py310', 'py311']
+
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+line_length = 79
+split_on_trailing_comma = true
+
+
+[tool.bandit]
+exclude_dirs = ["tests"]
+skips = ["C0114", "C0116"]
+
+
+[tool.pylint.'MESSAGES CONTROL']
+max-line-length = 79
+min-similarity-lines = 7
+disable = """
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
+    too-few-public-methods,
+    unsubscriptable-object,
+    fixme,
+    wildcard-import,
+    unused-wildcard-import
+"""
+
+[tool.pyright]
+include = ["custom_components"]
+exclude = [
+  "**/node_modules",
+  "**/__pycache__",
+  "**/typings",
+  "**/typestubs"
+]
+reportUnknownMemberType = false
+reportPrivateImportUsage = false
+typeCheckingMode = "basic"
+stubPath = "typestubs"
+pythonVersion = "3.10"
+
+[tool.ruff]
+exclude = ["typestubs"]
+ignore = ["F401"]
+
