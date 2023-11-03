@@ -1,30 +1,40 @@
 """Platform for light integration."""
+
 from __future__ import annotations
+
+import logging
 from typing import Any
+
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
 from .const import DOMAIN
-import logging
 
 _LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     hub = hass.data[DOMAIN][config_entry.entry_id]
 
     new_devices = []
     for switch_id in hub.cync_switches:
-        if not hub.cync_switches[switch_id]._update_callback and hub.cync_switches[switch_id].plug and switch_id in config_entry.options["switches"]:
+        if (
+            not hub.cync_switches[switch_id]._update_callback
+            and hub.cync_switches[switch_id].plug
+            and switch_id in config_entry.options["switches"]
+        ):
             new_devices.append(CyncPlugEntity(hub.cync_switches[switch_id]))
 
     if new_devices:
         async_add_entities(new_devices)
+
 
 class CyncPlugEntity(SwitchEntity):
     """Representation of a Cync Switch Light Entity."""
@@ -47,16 +57,25 @@ class CyncPlugEntity(SwitchEntity):
     def device_info(self) -> DeviceInfo:
         """Return device registry information for this entity."""
         return DeviceInfo(
-            identifiers = {(DOMAIN, f"{self.cync_switch.room.name} ({self.cync_switch.home_name})")},
-            manufacturer = "Cync by Savant",
-            name = f"{self.cync_switch.room.name} ({self.cync_switch.home_name})",
-            suggested_area = f"{self.cync_switch.room.name}",
+            identifiers={
+                (
+                    DOMAIN,
+                    (
+                        f"{self.cync_switch.room.name} ({self.cync_switch.home_name})"
+                    ),
+                )
+            },
+            manufacturer="Cync by Savant",
+            name=(
+                f"{self.cync_switch.room.name} ({self.cync_switch.home_name})"
+            ),
+            suggested_area=f"{self.cync_switch.room.name}",
         )
 
     @property
     def unique_id(self) -> str:
         """Return Unique ID string."""
-        return 'cync_switch_' + self.cync_switch.device_id 
+        return "cync_switch_" + self.cync_switch.device_id
 
     @property
     def name(self) -> str:
@@ -72,7 +91,7 @@ class CyncPlugEntity(SwitchEntity):
     def is_on(self) -> bool | None:
         """Return true if light is on."""
         return self.cync_switch.power_state
-            
+
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the outlet."""
         await self.cync_switch.turn_on(None, None, None)

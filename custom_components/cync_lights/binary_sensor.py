@@ -1,27 +1,47 @@
 """Platform for binary sensor integration."""
+
 from __future__ import annotations
+
 from typing import Any
-from homeassistant.components.binary_sensor import (BinarySensorDeviceClass, BinarySensorEntity)
+
+from homeassistant.components.binary_sensor import (
+    BinarySensorDeviceClass,
+    BinarySensorEntity,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
 from .const import DOMAIN
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     hub = hass.data[DOMAIN][config_entry.entry_id]
 
     new_devices = []
     for sensor in hub.cync_motion_sensors:
-        if not hub.cync_motion_sensors[sensor]._update_callback and sensor in config_entry.options["motion_sensors"]:
-            new_devices.append(CyncMotionSensorEntity(hub.cync_motion_sensors[sensor]))
+        if (
+            not hub.cync_motion_sensors[sensor]._update_callback
+            and sensor in config_entry.options["motion_sensors"]
+        ):
+            new_devices.append(
+                CyncMotionSensorEntity(hub.cync_motion_sensors[sensor])
+            )
     for sensor in hub.cync_ambient_light_sensors:
-        if not hub.cync_ambient_light_sensors[sensor]._update_callback and sensor in config_entry.options["ambient_light_sensors"]:
-            new_devices.append(CyncAmbientLightSensorEntity(hub.cync_ambient_light_sensors[sensor]))
+        if (
+            not hub.cync_ambient_light_sensors[sensor]._update_callback
+            and sensor in config_entry.options["ambient_light_sensors"]
+        ):
+            new_devices.append(
+                CyncAmbientLightSensorEntity(
+                    hub.cync_ambient_light_sensors[sensor]
+                )
+            )
 
     if new_devices:
         async_add_entities(new_devices)
@@ -48,16 +68,25 @@ class CyncMotionSensorEntity(BinarySensorEntity):
     def device_info(self) -> DeviceInfo:
         """Return device registry information for this entity."""
         return DeviceInfo(
-            identifiers = {(DOMAIN, f"{self.motion_sensor.room.name} ({self.motion_sensor.home_name})")},
-            manufacturer = "Cync by Savant",
-            name = f"{self.motion_sensor.room.name} ({self.motion_sensor.home_name})",
-            suggested_area = f"{self.motion_sensor.room.name}",
+            identifiers={
+                (
+                    DOMAIN,
+                    (
+                        f"{self.motion_sensor.room.name} ({self.motion_sensor.home_name})"
+                    ),
+                )
+            },
+            manufacturer="Cync by Savant",
+            name=(
+                f"{self.motion_sensor.room.name} ({self.motion_sensor.home_name})"
+            ),
+            suggested_area=f"{self.motion_sensor.room.name}",
         )
 
     @property
     def unique_id(self) -> str:
         """Return Unique ID string."""
-        return 'cync_motion_sensor_' + self.motion_sensor.device_id
+        return "cync_motion_sensor_" + self.motion_sensor.device_id
 
     @property
     def name(self) -> str:
@@ -73,6 +102,7 @@ class CyncMotionSensorEntity(BinarySensorEntity):
     def device_class(self) -> str | None:
         """Return the device class"""
         return BinarySensorDeviceClass.MOTION
+
 
 class CyncAmbientLightSensorEntity(BinarySensorEntity):
     """Representation of a Cync Ambient Light Sensor."""
@@ -95,16 +125,27 @@ class CyncAmbientLightSensorEntity(BinarySensorEntity):
     def device_info(self) -> DeviceInfo:
         """Return device registry information for this entity."""
         return DeviceInfo(
-            identifiers = {(DOMAIN, f"{self.ambient_light_sensor.room.name} ({self.ambient_light_sensor.home_name})")},
-            manufacturer = "Cync by Savant",
-            name = f"{self.ambient_light_sensor.room.name} ({self.ambient_light_sensor.home_name})",
-            suggested_area = f"{self.ambient_light_sensor.room.name}",
+            identifiers={
+                (
+                    DOMAIN,
+                    (
+                        f"{self.ambient_light_sensor.room.name} ({self.ambient_light_sensor.home_name})"
+                    ),
+                )
+            },
+            manufacturer="Cync by Savant",
+            name=(
+                f"{self.ambient_light_sensor.room.name} ({self.ambient_light_sensor.home_name})"
+            ),
+            suggested_area=f"{self.ambient_light_sensor.room.name}",
         )
 
     @property
     def unique_id(self) -> str:
         """Return Unique ID string."""
-        return 'cync_ambient_light_sensor_' + self.ambient_light_sensor.device_id
+        return (
+            "cync_ambient_light_sensor_" + self.ambient_light_sensor.device_id
+        )
 
     @property
     def name(self) -> str:
@@ -120,4 +161,3 @@ class CyncAmbientLightSensorEntity(BinarySensorEntity):
     def device_class(self) -> str | None:
         """Return the device class"""
         return BinarySensorDeviceClass.LIGHT
-
