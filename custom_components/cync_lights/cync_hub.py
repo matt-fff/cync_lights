@@ -15,7 +15,9 @@ API_AUTH = f"{API_BASE}/user_auth"
 API_REQUEST_CODE = f"{API_BASE}/two_factor/email/verifycode"
 API_2FACTOR_AUTH = f"{API_BASE}/user_auth/two_factor"
 API_DEVICES = f"{API_BASE}/user/" + "{user}/subscribe/devices"
-API_DEVICE_INFO = "product/{product_id}/device/{device_id}/property"
+API_DEVICE_INFO = (
+    f"{API_BASE}/product/" + "{product_id}/device/{device_id}/property"
+)
 
 Capabilities = {
     "ONOFF": [
