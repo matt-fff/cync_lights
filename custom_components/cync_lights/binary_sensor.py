@@ -8,10 +8,10 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
+from .cync_entity import CyncEntity
 
 
 async def async_setup_entry(
@@ -45,55 +45,20 @@ async def async_setup_entry(
         async_add_entities(new_devices)
 
 
-class CyncMotionSensorEntity(BinarySensorEntity):
+class CyncMotionSensorEntity(BinarySensorEntity, CyncEntity):
     """Representation of a Cync Motion Sensor."""
 
-    _attr_should_poll: bool = False
-
-    def __init__(self, motion_sensor) -> None:
-        """Initialize the sensor."""
-        self.motion_sensor = motion_sensor
-
-    async def async_added_to_hass(self) -> None:
-        """Run when this Entity has been added to HA."""
-        self.motion_sensor.register(self.async_write_ha_state)
-
-    async def async_will_remove_from_hass(self) -> None:
-        """Entity being removed from hass."""
-        self.motion_sensor.reset()
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device registry information for this entity."""
-        device_name = (
-            self.motion_sensor.room.name + f" ({self.motion_sensor.home_name})"
-        )
-        return DeviceInfo(
-            identifiers={
-                (
-                    DOMAIN,
-                    device_name,
-                )
-            },
-            manufacturer="Cync by Savant",
-            name=(device_name),
-            suggested_area=self.motion_sensor.room.name,
-        )
-
-    @property
-    def unique_id(self) -> str:
-        """Return Unique ID string."""
-        return "cync_motion_sensor_" + self.motion_sensor.device_id
+    type_: str = "cync_motion_sensor_"
 
     @property
     def name(self) -> str:
         """Return the name of the motion_sensor."""
-        return self.motion_sensor.name + " Motion"
+        return self.entity.name + " Motion"
 
     @property
     def is_on(self) -> bool | None:
         """Return true if light is on."""
-        return self.motion_sensor.motion
+        return self.entity.motion
 
     @property
     def device_class(self) -> str | None:
@@ -101,58 +66,20 @@ class CyncMotionSensorEntity(BinarySensorEntity):
         return BinarySensorDeviceClass.MOTION
 
 
-class CyncAmbientLightSensorEntity(BinarySensorEntity):
+class CyncAmbientLightSensorEntity(BinarySensorEntity, CyncEntity):
     """Representation of a Cync Ambient Light Sensor."""
 
-    _attr_should_poll: bool = False
-
-    def __init__(self, ambient_light_sensor) -> None:
-        """Initialize the sensor."""
-        self.ambient_light_sensor = ambient_light_sensor
-
-    async def async_added_to_hass(self) -> None:
-        """Run when this Entity has been added to HA."""
-        self.ambient_light_sensor.register(self.async_write_ha_state)
-
-    async def async_will_remove_from_hass(self) -> None:
-        """Entity being removed from hass."""
-        self.ambient_light_sensor.reset()
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device registry information for this entity."""
-        device_name = (
-            self.ambient_light_sensor.room.name
-            + f" ({self.ambient_light_sensor.home_name})"
-        )
-        return DeviceInfo(
-            identifiers={
-                (
-                    DOMAIN,
-                    device_name,
-                )
-            },
-            manufacturer="Cync by Savant",
-            name=(device_name),
-            suggested_area=self.ambient_light_sensor.room.name,
-        )
-
-    @property
-    def unique_id(self) -> str:
-        """Return Unique ID string."""
-        return (
-            "cync_ambient_light_sensor_" + self.ambient_light_sensor.device_id
-        )
+    type_: str = "cync_ambient_light_sensor_"
 
     @property
     def name(self) -> str:
-        """Return the name of the ambient_light_sensor."""
-        return self.ambient_light_sensor.name + " Ambient Light"
+        """Return the name of the entity."""
+        return self.entity.name + " Ambient Light"
 
     @property
     def is_on(self) -> bool | None:
         """Return true if light is on."""
-        return self.ambient_light_sensor.ambient_light
+        return self.entity.ambient_light
 
     @property
     def device_class(self) -> str | None:

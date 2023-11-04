@@ -26,7 +26,7 @@ dev-dependencies = ["black~=23.10.1", "flake8~=5.0.4", "pyright~=1.1.334", "ruff
 "lint:bandit" = "bandit -r custom_components/"
 "lint:pylint" = "pylint custom_components/"
 "lint:pyright" = "pyright"
-quality = { chain = [ "fmt:isort", "fmt:black", "lint:ruff", "lint:flake8", "lint:pyright", "lint:bandit", "lint:pylint" ] }
+quality = { chain = [ "fmt:isort", "fmt:black", "lint:ruff", "lint:flake8", "lint:pyright", "lint:pylint", "lint:bandit" ] }
 
 [tool.flake8]
 extend-ignore = ["E203"]
@@ -62,7 +62,10 @@ disable = """
     unsubscriptable-object,
     fixme,
     wildcard-import,
-    unused-wildcard-import
+    unused-wildcard-import,
+    broad-exception-caught,
+    unused-argument,
+    protected-access
 """
 
 [tool.pyright]

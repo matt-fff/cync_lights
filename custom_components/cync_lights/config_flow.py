@@ -44,11 +44,9 @@ async def cync_login(hub, user_input: dict[str, Any]) -> dict[str, Any]:
                 "user_input": user_input,
             },
         }
-    else:
-        if response["two_factor_code_required"]:
-            raise TwoFactorCodeRequired
-        else:
-            raise InvalidAuth
+    if response["two_factor_code_required"]:
+        raise TwoFactorCodeRequired
+    raise InvalidAuth
 
 
 async def submit_two_factor_code(
@@ -68,8 +66,7 @@ async def submit_two_factor_code(
                 },
             },
         }
-    else:
-        raise InvalidAuth
+    raise InvalidAuth
 
 
 class CyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -100,8 +97,8 @@ class CyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return await self.async_step_two_factor_code()
         except InvalidAuth:
             errors["base"] = "invalid_auth"
-        except Exception as e:  # pylint: disable=broad-except
-            _LOGGER.error(str(type(e).__name__) + ": " + str(e))
+        except Exception as exc:  # pylint: disable=broad-except
+            _LOGGER.error("%s: %s", str(type(exc).__name__), str(exc))
             errors["base"] = "unknown"
         else:
             self.data = info
@@ -127,8 +124,8 @@ class CyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             info["data"]["cync_config"] = await self.cync_hub.get_cync_config()
         except InvalidAuth:
             errors["base"] = "invalid_auth"
-        except Exception as e:  # pylint: disable=broad-except
-            _LOGGER.error(str(type(e).__name__) + ": " + str(e))
+        except Exception as exc:  # pylint: disable=broad-except
+            _LOGGER.error("%s: %s", str(type(exc).__name__), str(exc))
             errors["base"] = "unknown"
         else:
             self.data = info
@@ -292,14 +289,12 @@ class CyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 data=self.data["data"],
                 options=self.options,
             )
-        else:
-            self.hass.config_entries.async_update_entry(
-                existing_entry, data=self.data["data"], options=self.options
-            )
-            await self.hass.config_entries.async_reload(
-                existing_entry.entry_id
-            )
-            return self.async_abort(reason="reauth_successful")
+
+        self.hass.config_entries.async_update_entry(
+            existing_entry, data=self.data["data"], options=self.options
+        )
+        await self.hass.config_entries.async_reload(existing_entry.entry_id)
+        return self.async_abort(reason="reauth_successful")
 
     @staticmethod
     @callback
@@ -323,8 +318,7 @@ class CyncOptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             if user_input["re-authenticate"] == "No":
                 return await self.async_step_select_switches()
-            else:
-                return await self.async_step_auth()
+            return await self.async_step_auth()
 
         data_schema = vol.Schema(
             {
@@ -354,7 +348,7 @@ class CyncOptionsFlowHandler(config_entries.OptionsFlow):
         except InvalidAuth:
             errors["base"] = "invalid_auth"
         except Exception as exc:  # pylint: disable=broad-except
-            _LOGGER.error(str(type(exc).__name__) + ": " + str(exc))
+            _LOGGER.error("%s: %s", str(type(exc).__name__), str(exc))
             errors["base"] = "unknown"
 
         return await self.async_step_select_switches()
@@ -375,8 +369,8 @@ class CyncOptionsFlowHandler(config_entries.OptionsFlow):
             info["data"]["cync_config"] = await self.cync_hub.get_cync_config()
         except InvalidAuth:
             errors["base"] = "invalid_auth"
-        except Exception as e:  # pylint: disable=broad-except
-            _LOGGER.error(str(type(e).__name__) + ": " + str(e))
+        except Exception as exc:  # pylint: disable=broad-except
+            _LOGGER.error("%s: %s", str(type(exc).__name__), str(exc))
             errors["base"] = "unknown"
         else:
             self.data = info

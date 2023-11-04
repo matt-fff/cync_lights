@@ -8,359 +8,16 @@ from typing import Any
 
 import aiohttp
 
-_LOGGER = logging.getLogger(__name__)
-
-API_BASE = "https://api.gelighting.com/v2"
-API_AUTH = f"{API_BASE}/user_auth"
-API_REQUEST_CODE = f"{API_BASE}/two_factor/email/verifycode"
-API_2FACTOR_AUTH = f"{API_BASE}/user_auth/two_factor"
-API_DEVICES = f"{API_BASE}/user/" + "{user}/subscribe/devices"
-API_DEVICE_INFO = (
-    f"{API_BASE}/product/" + "{product_id}/device/{device_id}/property"
+from .const import (
+    API_2FACTOR_AUTH,
+    API_AUTH,
+    API_DEVICE_INFO,
+    API_DEVICES,
+    API_REQUEST_CODE,
+    CAPABILITIES,
 )
 
-Capabilities = {
-    "ONOFF": [
-        1,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        13,
-        14,
-        15,
-        17,
-        18,
-        19,
-        20,
-        21,
-        22,
-        23,
-        24,
-        25,
-        26,
-        27,
-        28,
-        29,
-        30,
-        31,
-        32,
-        33,
-        34,
-        35,
-        36,
-        37,
-        38,
-        39,
-        40,
-        48,
-        49,
-        51,
-        52,
-        53,
-        54,
-        55,
-        56,
-        57,
-        58,
-        59,
-        61,
-        62,
-        63,
-        64,
-        65,
-        66,
-        67,
-        68,
-        80,
-        81,
-        82,
-        83,
-        85,
-        128,
-        129,
-        130,
-        131,
-        132,
-        133,
-        134,
-        135,
-        136,
-        137,
-        138,
-        139,
-        140,
-        141,
-        142,
-        143,
-        144,
-        145,
-        146,
-        147,
-        148,
-        149,
-        150,
-        151,
-        152,
-        153,
-        154,
-        156,
-        158,
-        159,
-        160,
-        161,
-        162,
-        163,
-        164,
-        165,
-    ],
-    "BRIGHTNESS": [
-        1,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        13,
-        14,
-        15,
-        17,
-        18,
-        19,
-        20,
-        21,
-        22,
-        23,
-        24,
-        25,
-        26,
-        27,
-        28,
-        29,
-        30,
-        31,
-        32,
-        33,
-        34,
-        35,
-        36,
-        37,
-        48,
-        49,
-        55,
-        56,
-        80,
-        81,
-        82,
-        83,
-        85,
-        128,
-        129,
-        130,
-        131,
-        132,
-        133,
-        134,
-        135,
-        136,
-        137,
-        138,
-        139,
-        140,
-        141,
-        142,
-        143,
-        144,
-        145,
-        146,
-        147,
-        148,
-        149,
-        150,
-        151,
-        152,
-        153,
-        154,
-        156,
-        158,
-        159,
-        160,
-        161,
-        162,
-        163,
-        164,
-        165,
-    ],
-    "COLORTEMP": [
-        5,
-        6,
-        7,
-        8,
-        10,
-        11,
-        14,
-        15,
-        19,
-        20,
-        21,
-        22,
-        23,
-        25,
-        26,
-        28,
-        29,
-        30,
-        31,
-        32,
-        33,
-        34,
-        35,
-        80,
-        82,
-        83,
-        85,
-        129,
-        130,
-        131,
-        132,
-        133,
-        135,
-        136,
-        137,
-        138,
-        139,
-        140,
-        141,
-        142,
-        143,
-        144,
-        145,
-        146,
-        147,
-        153,
-        154,
-        156,
-        158,
-        159,
-        160,
-        161,
-        162,
-        163,
-        164,
-        165,
-    ],
-    "RGB": [
-        6,
-        7,
-        8,
-        21,
-        22,
-        23,
-        30,
-        31,
-        32,
-        33,
-        34,
-        35,
-        131,
-        132,
-        133,
-        137,
-        138,
-        139,
-        140,
-        141,
-        142,
-        143,
-        146,
-        147,
-        153,
-        154,
-        156,
-        158,
-        159,
-        160,
-        161,
-        162,
-        163,
-        164,
-        165,
-    ],
-    "MOTION": [37, 49, 54],
-    "AMBIENT_LIGHT": [37, 49, 54],
-    "WIFICONTROL": [
-        36,
-        37,
-        38,
-        39,
-        40,
-        48,
-        49,
-        51,
-        52,
-        53,
-        54,
-        55,
-        56,
-        57,
-        58,
-        59,
-        61,
-        62,
-        63,
-        64,
-        65,
-        66,
-        67,
-        68,
-        80,
-        81,
-        128,
-        129,
-        130,
-        131,
-        132,
-        133,
-        134,
-        135,
-        136,
-        137,
-        138,
-        139,
-        140,
-        141,
-        142,
-        143,
-        144,
-        145,
-        146,
-        147,
-        148,
-        149,
-        150,
-        151,
-        152,
-        153,
-        154,
-        156,
-        158,
-        159,
-        160,
-        161,
-        162,
-        163,
-        164,
-        165,
-    ],
-    "PLUG": [64, 65, 66, 67, 68],
-    "FAN": [81],
-    "MULTIELEMENT": {"67": 2},
-}
+_LOGGER = logging.getLogger(__name__)
 
 
 class CyncHub:
@@ -373,7 +30,7 @@ class CyncHub:
         self.logged_in = False
         self.home_devices = user_data["cync_config"]["home_devices"]
         self.home_controllers = user_data["cync_config"]["home_controllers"]
-        self.switchID_to_homeID = user_data["cync_config"][
+        self.switch_to_home_id_map = user_data["cync_config"][
             "switchID_to_homeID"
         ]
         self.connected_devices = {
@@ -419,7 +76,7 @@ class CyncHub:
             ].items()
             if device_info.get("AMBIENT_LIGHT", False)
         }
-        self.switchID_to_deviceIDs = {
+        self.switch_to_device_id_map = {
             device_info.switch_id: [
                 dev_id
                 for dev_id, dev_info in self.cync_switches.items()
@@ -432,16 +89,7 @@ class CyncHub:
         self.options = options
         self._seq_num = 0
         self.pending_commands = {}
-        [
-            room.initialize()
-            for room in self.cync_rooms.values()
-            if room.is_subgroup
-        ]
-        [
-            room.initialize()
-            for room in self.cync_rooms.values()
-            if not room.is_subgroup
-        ]
+        _ = [room.initialize() for room in self.cync_rooms.values()]
 
     def start_tcp_client(self):
         self.thread = threading.Thread(
@@ -488,7 +136,9 @@ class CyncHub:
                         uri, ssl_port, ssl=context
                     )
                 except Exception as exc:
-                    _LOGGER.warn(str(type(exc).__name__) + ": " + str(exc))
+                    _LOGGER.warning(
+                        "%s: %s", str(type(exc).__name__), str(exc)
+                    )
                     context.check_hostname = False
                     context.verify_mode = ssl.CERT_NONE
                     try:
@@ -498,12 +148,14 @@ class CyncHub:
                             )
                         )
                     except Exception as exc:
-                        _LOGGER.warn(str(type(exc).__name__) + ": " + str(exc))
+                        _LOGGER.warning(
+                            "%s: %s", str(type(exc).__name__), str(exc)
+                        )
                         self.reader, self.writer = (
                             await asyncio.open_connection(uri, port)
                         )
             except Exception as exc:
-                _LOGGER.error(str(type(exc).__name__) + ": " + str(exc))
+                _LOGGER.error("%s: %s", str(type(exc).__name__), str(exc))
                 await asyncio.sleep(5)
             else:
                 read_tcp_messages = asyncio.create_task(
@@ -532,19 +184,20 @@ class CyncHub:
                     for task in done:
                         name = task.get_name()
                         exception = task.exception()
-                        _LOGGER.error(
-                            f"Encountered an error in task '{name}'"
-                            + str(type(exception).__name__)
-                            + ": "
-                            + str(exception)
-                        )
+                        if exception is not None:
+                            _LOGGER.error(
+                                "Encountered an error in task '%s' - %s: %s",
+                                str(name),
+                                str(type(exception).__name__),
+                                str(exception),
+                            )
 
                         try:
                             # TODO should we use this result?
                             task.result()
                         except Exception as exc:
                             _LOGGER.error(
-                                str(type(exc).__name__) + ": " + str(exc)
+                                "%s: %s", str(type(exc).__name__), str(exc)
                             )
                     for task in pending:
                         task.cancel()
@@ -557,7 +210,7 @@ class CyncHub:
                     else:
                         _LOGGER.debug("Cync client shutting down")
                 except Exception as exc:
-                    _LOGGER.error(str(type(exc).__name__) + ": " + str(exc))
+                    _LOGGER.error("%s: %s", str(type(exc).__name__), str(exc))
 
     async def _read_tcp_messages(self):
         self.writer.write(self.login_code)
@@ -569,6 +222,7 @@ class CyncHub:
             if len(data) == 0:
                 self.logged_in = False
                 raise LostConnection
+
             while len(data) >= 12:
                 packet_type = int(data[0])
                 packet_length = struct.unpack(">I", data[1:5])[0]
@@ -576,169 +230,9 @@ class CyncHub:
                 try:
                     if packet_length == len(packet):
                         if packet_type == 115:
-                            switch_id = str(
-                                struct.unpack(">I", packet[0:4])[0]
-                            )
-                            home_id = self.switchID_to_homeID[switch_id]
-
-                            # send response packet
-                            response_id = struct.unpack(">H", packet[4:6])[0]
-                            response_packet = (
-                                bytes.fromhex("7300000007")
-                                + int(switch_id).to_bytes(4, "big")
-                                + response_id.to_bytes(2, "big")
-                                + bytes.fromhex("00")
-                            )
-                            self.loop.call_soon_threadsafe(
-                                self.send_request, response_packet
-                            )
-
-                            if packet_length >= 33 and int(packet[13]) == 219:
-                                # parse state and brightness change packet
-                                deviceID = self.home_devices[home_id][
-                                    int(packet[21])
-                                ]
-                                state = int(packet[27]) > 0
-                                brightness = int(packet[28]) if state else 0
-                                if deviceID in self.cync_switches:
-                                    self.cync_switches[deviceID].update_switch(
-                                        state,
-                                        brightness,
-                                        self.cync_switches[
-                                            deviceID
-                                        ].color_temp,
-                                        self.cync_switches[deviceID].rgb,
-                                    )
-                            elif packet_length >= 25 and int(packet[13]) == 84:
-                                # parse motion and ambient light sensor packet
-                                deviceID = self.home_devices[home_id][
-                                    int(packet[16])
-                                ]
-                                motion = int(packet[22]) > 0
-                                ambient_light = int(packet[24]) > 0
-                                if deviceID in self.cync_motion_sensors:
-                                    self.cync_motion_sensors[
-                                        deviceID
-                                    ].update_motion_sensor(motion)
-                                if deviceID in self.cync_ambient_light_sensors:
-                                    self.cync_ambient_light_sensors[
-                                        deviceID
-                                    ].update_ambient_light_sensor(
-                                        ambient_light
-                                    )
-                            elif packet_length > 51 and int(packet[13]) == 82:
-                                # parse initial state packet
-                                switch_id = str(
-                                    struct.unpack(">I", packet[0:4])[0]
-                                )
-                                home_id = self.switchID_to_homeID[switch_id]
-                                self._add_connected_devices(switch_id, home_id)
-                                packet = packet[22:]
-                                while len(packet) > 24:
-                                    deviceID = self.home_devices[home_id][
-                                        int(packet[0])
-                                    ]
-                                    if deviceID in self.cync_switches:
-                                        if (
-                                            self.cync_switches[
-                                                deviceID
-                                            ].elements
-                                            > 1
-                                        ):
-                                            for i in range(
-                                                self.cync_switches[
-                                                    deviceID
-                                                ].elements
-                                            ):
-                                                device_id = self.home_devices[
-                                                    home_id
-                                                ][
-                                                    (i + 1) * 256
-                                                    + int(packet[0])
-                                                ]
-                                                state = (
-                                                    int(
-                                                        (int(packet[12]) >> i)
-                                                        & int(packet[8])
-                                                    )
-                                                    > 0
-                                                )
-                                                brightness = (
-                                                    100 if state else 0
-                                                )
-                                                self.cync_switches[
-                                                    device_id
-                                                ].update_switch(
-                                                    state,
-                                                    brightness,
-                                                    self.cync_switches[
-                                                        device_id
-                                                    ].color_temp,
-                                                    self.cync_switches[
-                                                        device_id
-                                                    ].rgb,
-                                                )
-                                        else:
-                                            state = int(packet[8]) > 0
-                                            brightness = (
-                                                int(packet[12]) if state else 0
-                                            )
-                                            color_temp = int(packet[16])
-                                            rgb = {
-                                                "r": int(packet[20]),
-                                                "g": int(packet[21]),
-                                                "b": int(packet[22]),
-                                                "active": (
-                                                    int(packet[16]) == 254
-                                                ),
-                                            }
-                                            self.cync_switches[
-                                                deviceID
-                                            ].update_switch(
-                                                state,
-                                                brightness,
-                                                color_temp,
-                                                rgb,
-                                            )
-                                    packet = packet[24:]
+                            await self._process_tcp_115(packet)
                         elif packet_type == 131:
-                            switch_id = str(
-                                struct.unpack(">I", packet[0:4])[0]
-                            )
-                            home_id = self.switchID_to_homeID[switch_id]
-                            if packet_length >= 33 and int(packet[13]) == 219:
-                                # parse state and brightness change packet
-                                deviceID = self.home_devices[home_id][
-                                    int(packet[21])
-                                ]
-                                state = int(packet[27]) > 0
-                                brightness = int(packet[28]) if state else 0
-                                if deviceID in self.cync_switches:
-                                    self.cync_switches[deviceID].update_switch(
-                                        state,
-                                        brightness,
-                                        self.cync_switches[
-                                            deviceID
-                                        ].color_temp,
-                                        self.cync_switches[deviceID].rgb,
-                                    )
-                            elif packet_length >= 25 and int(packet[13]) == 84:
-                                # parse motion and ambient light sensor packet
-                                deviceID = self.home_devices[home_id][
-                                    int(packet[16])
-                                ]
-                                motion = int(packet[22]) > 0
-                                ambient_light = int(packet[24]) > 0
-                                if deviceID in self.cync_motion_sensors:
-                                    self.cync_motion_sensors[
-                                        deviceID
-                                    ].update_motion_sensor(motion)
-                                if deviceID in self.cync_ambient_light_sensors:
-                                    self.cync_ambient_light_sensors[
-                                        deviceID
-                                    ].update_ambient_light_sensor(
-                                        ambient_light
-                                    )
+                            await self._process_tcp_131(packet)
                         elif (
                             packet_type == 67
                             and packet_length >= 26
@@ -746,99 +240,170 @@ class CyncHub:
                             and int(packet[5]) == 1
                             and int(packet[6]) == 6
                         ):
-                            # parse state packet
-                            switch_id = str(
-                                struct.unpack(">I", packet[0:4])[0]
-                            )
-                            home_id = self.switchID_to_homeID[switch_id]
-                            packet = packet[7:]
-                            while len(packet) >= 19:
-                                if int(packet[3]) < len(
-                                    self.home_devices[home_id]
-                                ):
-                                    deviceID = self.home_devices[home_id][
-                                        int(packet[3])
-                                    ]
-                                    if deviceID in self.cync_switches:
-                                        if (
-                                            self.cync_switches[
-                                                deviceID
-                                            ].elements
-                                            > 1
-                                        ):
-                                            for i in range(
-                                                self.cync_switches[
-                                                    deviceID
-                                                ].elements
-                                            ):
-                                                device_id = self.home_devices[
-                                                    home_id
-                                                ][
-                                                    (i + 1) * 256
-                                                    + int(packet[3])
-                                                ]
-                                                state = (
-                                                    int(
-                                                        (int(packet[5]) >> i)
-                                                        & int(packet[4])
-                                                    )
-                                                    > 0
-                                                )
-                                                brightness = (
-                                                    100 if state else 0
-                                                )
-                                                self.cync_switches[
-                                                    device_id
-                                                ].update_switch(
-                                                    state,
-                                                    brightness,
-                                                    self.cync_switches[
-                                                        device_id
-                                                    ].color_temp,
-                                                    self.cync_switches[
-                                                        device_id
-                                                    ].rgb,
-                                                )
-                                        else:
-                                            state = int(packet[4]) > 0
-                                            brightness = (
-                                                int(packet[5]) if state else 0
-                                            )
-                                            color_temp = int(packet[6])
-                                            rgb = {
-                                                "r": int(packet[7]),
-                                                "g": int(packet[8]),
-                                                "b": int(packet[9]),
-                                                "active": (
-                                                    int(packet[6]) == 254
-                                                ),
-                                            }
-                                            self.cync_switches[
-                                                deviceID
-                                            ].update_switch(
-                                                state,
-                                                brightness,
-                                                color_temp,
-                                                rgb,
-                                            )
-                                packet = packet[19:]
+                            await self._process_tcp_67(packet)
                         elif packet_type == 171:
-                            switch_id = str(
-                                struct.unpack(">I", packet[0:4])[0]
-                            )
-                            home_id = self.switchID_to_homeID[switch_id]
-                            self._add_connected_devices(switch_id, home_id)
+                            await self._process_tcp_171(packet)
                         elif packet_type == 123:
-                            seq = str(struct.unpack(">H", packet[4:6])[0])
-                            command_received = self.pending_commands.get(
-                                seq, None
-                            )
-                            if command_received is not None:
-                                command_received(seq)
+                            await self._process_tcp_123(packet)
                 except Exception as exc:
-                    _LOGGER.error(str(type(exc).__name__) + ": " + str(exc))
+                    _LOGGER.error("%s: %s", str(type(exc).__name__), str(exc))
                 data = data[packet_length + 5 :]
+
         raise ShuttingDown
+
+    async def _process_tcp_115(self, packet):
+        # Implementation for packet_type 115
+        packet_length = len(packet)
+        switch_id = str(struct.unpack(">I", packet[0:4])[0])
+        home_id = self.switch_to_home_id_map[switch_id]
+
+        # send response packet
+        response_id = struct.unpack(">H", packet[4:6])[0]
+        response_packet = (
+            bytes.fromhex("7300000007")
+            + int(switch_id).to_bytes(4, "big")
+            + response_id.to_bytes(2, "big")
+            + bytes.fromhex("00")
+        )
+        self.loop.call_soon_threadsafe(self.send_request, response_packet)
+
+        if packet_length >= 33 and int(packet[13]) == 219:
+            # parse state and brightness change packet
+            device_id = self.home_devices[home_id][int(packet[21])]
+            state = int(packet[27]) > 0
+            brightness = int(packet[28]) if state else 0
+            if device_id in self.cync_switches:
+                self.cync_switches[device_id].update_switch(
+                    state,
+                    brightness,
+                    self.cync_switches[device_id].color_temp,
+                    self.cync_switches[device_id].rgb,
+                )
+        elif packet_length >= 25 and int(packet[13]) == 84:
+            # parse motion and ambient light sensor packet
+            device_id = self.home_devices[home_id][int(packet[16])]
+            motion = int(packet[22]) > 0
+            ambient_light = int(packet[24]) > 0
+            if device_id in self.cync_motion_sensors:
+                self.cync_motion_sensors[device_id].update_motion_sensor(
+                    motion
+                )
+            if device_id in self.cync_ambient_light_sensors:
+                self.cync_ambient_light_sensors[
+                    device_id
+                ].update_ambient_light_sensor(ambient_light)
+        elif packet_length > 51 and int(packet[13]) == 82:
+            # parse initial state packet
+            switch_id = str(struct.unpack(">I", packet[0:4])[0])
+            home_id = self.switch_to_home_id_map[switch_id]
+            self._add_connected_devices(switch_id, home_id)
+            packet = packet[22:]
+            while len(packet) > 24:
+                device_id = self.home_devices[home_id][int(packet[0])]
+                if device_id in self.cync_switches:
+                    if self.cync_switches[device_id].elements > 1:
+                        for i in range(self.cync_switches[device_id].elements):
+                            device_id = self.home_devices[home_id][
+                                (i + 1) * 256 + int(packet[0])
+                            ]
+                            state = (
+                                int((int(packet[12]) >> i) & int(packet[8]))
+                                > 0
+                            )
+                            brightness = 100 if state else 0
+                            self.cync_switches[device_id].update_switch(
+                                state,
+                                brightness,
+                                self.cync_switches[device_id].color_temp,
+                                self.cync_switches[device_id].rgb,
+                            )
+                    else:
+                        state = int(packet[8]) > 0
+                        brightness = int(packet[12]) if state else 0
+                        color_temp = int(packet[16])
+                        rgb = {
+                            "r": int(packet[20]),
+                            "g": int(packet[21]),
+                            "b": int(packet[22]),
+                            "active": int(packet[16]) == 254,
+                        }
+                        self.cync_switches[device_id].update_switch(
+                            state, brightness, color_temp, rgb
+                        )
+                packet = packet[24:]
+
+    async def _process_tcp_131(self, packet):
+        # Implementation for packet_type 131
+        packet_length = len(packet)
+        switch_id = str(struct.unpack(">I", packet[0:4])[0])
+        home_id = self.switch_to_home_id_map[switch_id]
+        if packet_length >= 33 and int(packet[13]) == 219:
+            # parse state and brightness change packet for packet_type 131
+            device_id = self.home_devices[home_id][int(packet[21])]
+            state = int(packet[27]) > 0
+            brightness = int(packet[28]) if state else 0
+            if device_id in self.cync_switches:
+                self.cync_switches[device_id].update_switch(
+                    state,
+                    brightness,
+                    self.cync_switches[device_id].color_temp,
+                    self.cync_switches[device_id].rgb,
+                )
+        elif packet_length >= 25 and int(packet[13]) == 84:
+            # parse motion and ambient light sensor packet for packet_type 131
+            device_id = self.home_devices[home_id][int(packet[16])]
+            motion = int(packet[22]) > 0
+            ambient_light = int(packet[24]) > 0
+            if device_id in self.cync_motion_sensors:
+                self.cync_motion_sensors[device_id].update_motion_sensor(
+                    motion
+                )
+            if device_id in self.cync_ambient_light_sensors:
+                self.cync_ambient_light_sensors[
+                    device_id
+                ].update_ambient_light_sensor(ambient_light)
+
+    async def _process_tcp_67(self, packet):
+        # Implementation for packet_type 67
+        switch_id = str(struct.unpack(">I", packet[0:4])[0])
+        home_id = self.switch_to_home_id_map[switch_id]
+        # parse state packet for packet_type 67
+        packet = packet[7:]
+        while len(packet) >= 19:
+            if int(packet[3]) < len(self.home_devices[home_id]):
+                device_id = self.home_devices[home_id][int(packet[3])]
+                if device_id in self.cync_switches:
+                    if self.cync_switches[device_id].elements > 1:
+                        for i in range(self.cync_switches[device_id].elements):
+                            device_id = self.home_devices[home_id][
+                                (i + 1) * 256 + int(packet[3])
+                            ]
+                            state = (
+                                int((int(packet[5]) >> i) & int(packet[4])) > 0
+                            )
+                            brightness = 100 if state else 0
+                            self.cync_switches[device_id].update_switch(
+                                state,
+                                brightness,
+                                self.cync_switches[device_id].color_temp,
+                                self.cync_switches[device_id].rgb,
+                            )
+                    else:
+                        state = int(packet[4]) > 0
+                        brightness = int(packet[5]) if state else 0
+
+    async def _process_tcp_171(self, packet):
+        # Implementation for packet_type 171
+        switch_id = str(struct.unpack(">I", packet[0:4])[0])
+        home_id = self.switch_to_home_id_map[switch_id]
+        self._add_connected_devices(switch_id, home_id)
+
+    async def _process_tcp_123(self, packet):
+        # Implementation for packet_type 123
+        seq = str(struct.unpack(">H", packet[4:6])[0])
+        command_received = self.pending_commands.get(seq, None)
+        if command_received is not None:
+            command_received(seq)
 
     async def _maintain_connection(self):
         while not self.shutting_down:
@@ -848,7 +413,7 @@ class CyncHub:
         raise ShuttingDown
 
     def _add_connected_devices(self, switch_id, home_id):
-        for dev in self.switchID_to_deviceIDs[switch_id]:
+        for dev in self.switch_to_device_id_map[switch_id]:
             # update list of WiFi connected devices
             if dev not in self.connected_devices[home_id]:
                 self.connected_devices[home_id].append(dev)
@@ -874,7 +439,7 @@ class CyncHub:
                 ]
                 and attempts < 10
             ):
-                for home_id, home_controllers in self.home_controllers.items():
+                for home_controllers in self.home_controllers.values():
                     for controller in home_controllers:
                         seq = self.get_seq_num()
                         ping = (
@@ -1515,7 +1080,6 @@ class CyncSwitch:
         Update the state of the switch as updates
         are received from the Cync server
         """
-        self.update_received = True
         if (
             self.power_state != state
             or self.brightness != brightness
@@ -1661,7 +1225,7 @@ class CyncUserData:
                         int.from_bytes([byt], "big") for byt in login_code
                     ]
                     return {"authorized": True}
-                elif resp.status == 400:
+                if resp.status == 400:
                     request_code_data = {
                         "corp_id": "1007d2ad150c4000",
                         "email": self.username,
@@ -1676,16 +1240,14 @@ class CyncUserData:
                                     "authorized": False,
                                     "two_factor_code_required": True,
                                 }
-                            else:
-                                return {
-                                    "authorized": False,
-                                    "two_factor_code_required": False,
-                                }
-                else:
-                    return {
-                        "authorized": False,
-                        "two_factor_code_required": False,
-                    }
+                            return {
+                                "authorized": False,
+                                "two_factor_code_required": False,
+                            }
+                return {
+                    "authorized": False,
+                    "two_factor_code_required": False,
+                }
 
     async def auth_two_factor(self, code):
         """Authenticate with 2 Factor Code."""
@@ -1700,216 +1262,258 @@ class CyncUserData:
             async with session.post(
                 API_2FACTOR_AUTH, json=two_factor_data
             ) as resp:
-                if resp.status == 200:
-                    self.user_credentials = await resp.json()
-                    login_code = (
-                        bytearray.fromhex("13000000")
-                        + (
-                            10 + len(self.user_credentials["authorize"])
-                        ).to_bytes(1, "big")
-                        + bytearray.fromhex("03")
-                        + self.user_credentials["user_id"].to_bytes(4, "big")
-                        + len(self.user_credentials["authorize"]).to_bytes(
-                            2, "big"
-                        )
-                        + bytearray(
-                            self.user_credentials["authorize"], "ascii"
-                        )
-                        + bytearray.fromhex("0000b4")
-                    )
-                    self.auth_code = [
-                        int.from_bytes([byt], "big") for byt in login_code
-                    ]
-                    return {"authorized": True}
-                else:
+                if resp.status != 200:
                     return {"authorized": False}
 
-    async def get_cync_config(self):
-        home_devices = {}
-        home_controllers = {}
-        switchID_to_homeID = {}
-        devices = {}
-        rooms = {}
-        homes = await self._get_homes()
-        for home in homes:
-            home_info = await self._get_home_properties(
-                home["product_id"], home["id"]
-            )
-            if (
-                home_info.get("groupsArray", False)
-                and home_info.get("bulbsArray", False)
-                and len(home_info["groupsArray"]) > 0
-                and len(home_info["bulbsArray"]) > 0
-            ):
-                home_id = str(home["id"])
-                bulbs_array_length = (
-                    max(
-                        [
-                            ((device["deviceID"] % home["id"]) % 1000)
-                            + (
-                                int((device["deviceID"] % home["id"]) / 1000)
-                                * 256
-                            )
-                            for device in home_info["bulbsArray"]
-                        ]
+                self.user_credentials = await resp.json()
+                login_code = (
+                    bytearray.fromhex("13000000")
+                    + (10 + len(self.user_credentials["authorize"])).to_bytes(
+                        1, "big"
                     )
-                    + 1
+                    + bytearray.fromhex("03")
+                    + self.user_credentials["user_id"].to_bytes(4, "big")
+                    + len(self.user_credentials["authorize"]).to_bytes(
+                        2, "big"
+                    )
+                    + bytearray(self.user_credentials["authorize"], "ascii")
+                    + bytearray.fromhex("0000b4")
                 )
-                home_devices[home_id] = [""] * (bulbs_array_length)
-                home_controllers[home_id] = []
-                for device in home_info["bulbsArray"]:
-                    device_type = device["deviceType"]
-                    device_id = str(device["deviceID"])
-                    current_index = (
-                        (device["deviceID"] % home["id"]) % 1000
-                    ) + (int((device["deviceID"] % home["id"]) / 1000) * 256)
-                    home_devices[home_id][current_index] = device_id
-                    devices[device_id] = {
-                        "name": device["displayName"],
-                        "mesh_id": current_index,
-                        "switch_id": str(device.get("switchID", 0)),
-                        "ONOFF": device_type in Capabilities["ONOFF"],
-                        "BRIGHTNESS": (
-                            device_type in Capabilities["BRIGHTNESS"]
-                        ),
-                        "COLORTEMP": device_type in Capabilities["COLORTEMP"],
-                        "RGB": device_type in Capabilities["RGB"],
-                        "MOTION": device_type in Capabilities["MOTION"],
-                        "AMBIENT_LIGHT": (
-                            device_type in Capabilities["AMBIENT_LIGHT"]
-                        ),
-                        "WIFICONTROL": (
-                            device_type in Capabilities["WIFICONTROL"]
-                        ),
-                        "PLUG": device_type in Capabilities["PLUG"],
-                        "FAN": device_type in Capabilities["FAN"],
-                        "home_name": home["name"],
-                        "room": "",
-                        "room_name": "",
-                    }
-                    if (
-                        str(device_type) in Capabilities["MULTIELEMENT"]
-                        and current_index < 256
-                    ):
-                        devices[device_id]["MULTIELEMENT"] = Capabilities[
-                            "MULTIELEMENT"
-                        ][str(device_type)]
-                    if (
-                        devices[device_id].get("WIFICONTROL", False)
-                        and "switchID" in device
-                        and device["switchID"] > 0
-                    ):
-                        switchID_to_homeID[str(device["switchID"])] = home_id
-                        devices[device_id]["switch_controller"] = device[
-                            "switchID"
-                        ]
-                        home_controllers[home_id].append(device["switchID"])
-                if len(home_controllers[home_id]) == 0:
-                    for device in home_info["bulbsArray"]:
-                        device_id = str(device["deviceID"])
-                        devices.pop(device_id, "")
-                    home_devices.pop(home_id, "")
-                    home_controllers.pop(home_id, "")
-                else:
-                    for room in home_info["groupsArray"]:
-                        if (
-                            len(room.get("deviceIDArray", []))
-                            + len(room.get("subgroupIDArray", []))
-                        ) > 0:
-                            room_id = home_id + "-" + str(room["groupID"])
-                            room_controller = home_controllers[home_id][0]
-                            available_room_controllers = [
-                                (id % 1000) + (int(id / 1000) * 256)
-                                for id in room.get("deviceIDArray", [])
-                                if "switch_controller"
-                                in devices[
-                                    home_devices[home_id][
-                                        (id % 1000) + (int(id / 1000) * 256)
-                                    ]
-                                ]
-                            ]
-                            if len(available_room_controllers) > 0:
-                                room_controller = devices[
-                                    home_devices[home_id][
-                                        available_room_controllers[0]
-                                    ]
-                                ]["switch_controller"]
-                            for id in room.get("deviceIDArray", []):
-                                id = (id % 1000) + (int(id / 1000) * 256)
-                                devices[home_devices[home_id][id]][
-                                    "room"
-                                ] = room_id
-                                devices[home_devices[home_id][id]][
-                                    "room_name"
-                                ] = room["displayName"]
-                                if "switch_controller" not in devices[
-                                    home_devices[home_id][id]
-                                ] and devices[home_devices[home_id][id]].get(
-                                    "ONOFF", False
-                                ):
-                                    devices[home_devices[home_id][id]][
-                                        "switch_controller"
-                                    ] = room_controller
-                            rooms[room_id] = {
-                                "name": room["displayName"],
-                                "mesh_id": room["groupID"],
-                                "room_controller": room_controller,
-                                "home_name": home["name"],
-                                "switches": [
-                                    home_devices[home_id][
-                                        (i % 1000) + (int(i / 1000) * 256)
-                                    ]
-                                    for i in room.get("deviceIDArray", [])
-                                    if devices[
-                                        home_devices[home_id][
-                                            (i % 1000) + (int(i / 1000) * 256)
-                                        ]
-                                    ].get("ONOFF", False)
-                                ],
-                                "isSubgroup": room.get("isSubgroup", False),
-                                "subgroups": [
-                                    home_id + "-" + str(subgroup)
-                                    for subgroup in room.get(
-                                        "subgroupIDArray", []
-                                    )
-                                ],
-                            }
-                    for room, room_info in rooms.items():
-                        if (
-                            not room_info.get("isSubgroup", False)
-                            and len(
-                                subgroups := room_info.get(
-                                    "subgroups", []
-                                ).copy()
-                            )
-                            > 0
-                        ):
-                            for subgroup in subgroups:
-                                if rooms.get(subgroup, None):
-                                    rooms[subgroup]["parent_room"] = room_info[
-                                        "name"
-                                    ]
-                                else:
-                                    room_info["subgroups"].pop(
-                                        room_info["subgroups"].index(subgroup)
-                                    )
+                self.auth_code = [
+                    int.from_bytes([byt], "big") for byt in login_code
+                ]
+                return {"authorized": True}
+
+    async def get_cync_config(self):
+        (
+            home_devices,
+            home_controllers,
+            switch_to_home_id_map,
+            devices,
+            rooms,
+        ) = await self._initialize_cync_config()
 
         if (
-            len(rooms) == 0
-            or len(devices) == 0
-            or len(home_controllers) == 0
-            or len(home_devices) == 0
-            or len(switchID_to_homeID) == 0
+            not home_devices
+            or not home_controllers
+            or not switch_to_home_id_map
         ):
             raise InvalidCyncConfiguration
+
+        return {
+            "rooms": rooms,
+            "devices": devices,
+            "home_devices": home_devices,
+            "home_controllers": home_controllers,
+            "switchID_to_homeID": switch_to_home_id_map,
+        }
+
+    async def _initialize_cync_config(self):
+        home_devices = {}
+        home_controllers = {}
+        switch_to_home_id_map = {}
+        devices = {}
+        rooms = {}
+
+        homes = await self._get_homes()
+
+        for home in homes:
+            home_id, home_info = await self._process_home(home)
+
+            if home_id is None or home_info is None:
+                continue
+
+            bulbs_array_length = self._calculate_bulbs_array_length(
+                home_id, home_info.get("bulbsArray", [])
+            )
+            home_devices[home_id] = [""] * bulbs_array_length
+            home_controllers[home_id] = []
+
+            home_device_subset, device_subset = self._process_devices(
+                home_id, home_info, home_controllers
+            )
+            home_devices.update(home_device_subset)
+            devices.update(device_subset)
+
+            if len(home_controllers[home_id]) > 0:
+                self._process_rooms(
+                    home_id,
+                    home_info,
+                    rooms,
+                    home_controllers,
+                    home_devices,
+                    devices,
+                )
+
+        return (
+            home_devices,
+            home_controllers,
+            switch_to_home_id_map,
+            devices,
+            rooms,
+        )
+
+    async def _process_home(
+        self, home
+    ) -> tuple[int, dict[str, Any]] | tuple[None, None]:
+        home_id = int(home["id"])
+        home_info = await self._get_home_properties(
+            home["product_id"], home_id
+        )
+
+        if (
+            home_info.get("groupsArray", False)
+            and home_info.get("bulbsArray", False)
+            and len(home_info["groupsArray"]) > 0
+            and len(home_info["bulbsArray"]) > 0
+        ):
+            return home_id, home_info
+        return None, None
+
+    def _calculate_bulbs_array_length(
+        self, home_id: int, bulbs_array: list[dict[str, Any]]
+    ):
+        # Calculate the length of bulbs array
+        return (
+            max(
+                (
+                    ((int(device["deviceID"]) % home_id) % 1000)
+                    + (int((int(device["deviceID"]) % home_id) / 1000) * 256)
+                    for device in bulbs_array
+                )
+            )
+            + 1
+        )
+
+    def _process_devices(
+        self,
+        home_id: int,
+        home_info: dict[str, Any],
+        home_controllers: dict[int, list],
+    ):
+        home_devices = {}
+        devices = {}
+        for device in home_info["bulbsArray"]:
+            device_id = int(device["deviceID"])
+            current_index = ((device_id % home_id) % 1000) + (
+                (device_id % home_id) // 1000 * 256
+            )
+            home_devices[home_id][current_index] = device_id
+            devices[device_id] = self._create_device_info(
+                device, home_info["name"], current_index
+            )
+
+            if "switch_controller" not in devices[device_id]:
+                device_type = device["deviceType"]
+                if (
+                    str(device_type) in CAPABILITIES["MULTIELEMENT"]
+                    and current_index < 256
+                ):
+                    switch_controller = CAPABILITIES["MULTIELEMENT"][
+                        str(device_type)
+                    ]
+                else:
+                    switch_controller = devices[
+                        home_devices[home_id][home_controllers[home_id][0]]
+                    ]["switch_controller"]
+
+                devices[device_id]["switch_controller"] = switch_controller
+
+        return home_devices, devices
+
+    def _create_device_info(
+        self, device: dict[str, Any], home_name: str, current_index: int
+    ):
+        device_type = device["deviceType"]
+
+        return {
+            "name": device["displayName"],
+            "mesh_id": current_index,
+            "switch_id": str(device.get("switchID", 0)),
+            "ONOFF": device_type in CAPABILITIES["ONOFF"],
+            "BRIGHTNESS": device_type in CAPABILITIES["BRIGHTNESS"],
+            "COLORTEMP": device_type in CAPABILITIES["COLORTEMP"],
+            "RGB": device_type in CAPABILITIES["RGB"],
+            "MOTION": device_type in CAPABILITIES["MOTION"],
+            "AMBIENT_LIGHT": device_type in CAPABILITIES["AMBIENT_LIGHT"],
+            "WIFICONTROL": device_type in CAPABILITIES["WIFICONTROL"],
+            "PLUG": device_type in CAPABILITIES["PLUG"],
+            "FAN": device_type in CAPABILITIES["FAN"],
+            "home_name": home_name,
+            "room": "",
+            "room_name": "",
+        }
+
+    def _process_rooms(
+        self,
+        home_id: int,
+        home_info,
+        rooms,
+        home_controllers: dict[int, list],
+        home_devices,
+        devices,
+    ):
+        for room in home_info["groupsArray"]:
+            if (
+                len(room.get("deviceIDArray", []))
+                + len(room.get("subgroupIDArray", []))
+                > 0
+            ):
+                room_id, room_controller = self._get_room_info(
+                    room, home_id, home_controllers, devices, home_devices
+                )
+                rooms[room_id] = room_controller
+        self._update_subgroups(rooms)
+
+    def _get_room_info(
+        self,
+        room: dict,
+        home_id: int,
+        home_controllers,
+        devices: dict,
+        home_devices: dict,
+    ):
+        room_id = f'{home_id}- {room["groupID"]}'
+
+        available_room_controllers = [
+            (device_id % 1000) + (int(device_id / 1000) * 256)
+            for device_id in room.get("deviceIDArray", [])
+            if "switch_controller"
+            in devices[
+                home_devices[home_id][
+                    (device_id % 1000) + (int(device_id / 1000) * 256)
+                ]
+            ]
+        ]
+
+        if len(available_room_controllers) > 0:
+            room_controller = devices[
+                home_devices[home_id][available_room_controllers[0]]
+            ]["switch_controller"]
         else:
-            return {
-                "rooms": rooms,
-                "devices": devices,
-                "home_devices": home_devices,
-                "home_controllers": home_controllers,
-                "switchID_to_homeID": switchID_to_homeID,
-            }
+            room_controller = home_controllers[home_id][0]
+
+        for device_id in room.get("deviceIDArray", []):
+            device_id = (device_id % 1000) + (int(device_id / 1000) * 256)
+            devices[home_devices[home_id][device_id]]["room"] = room_id
+            devices[home_devices[home_id][device_id]]["room_name"] = room[
+                "displayName"
+            ]
+        return room_id, room_controller
+
+    def _update_subgroups(self, rooms):
+        for room_info in rooms.values():
+            if (
+                not room_info.get("isSubgroup", False)
+                and len(subgroups := room_info.get("subgroups", [])) > 0
+            ):
+                for subgroup in subgroups:
+                    if rooms.get(subgroup, None):
+                        rooms[subgroup]["parent_room"] = room_info["name"]
+                    else:
+                        room_info["subgroups"].pop(
+                            room_info["subgroups"].index(subgroup)
+                        )
 
     async def _get_homes(self):
         """Get a list of devices for a particular user."""

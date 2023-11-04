@@ -1,7 +1,5 @@
 """Platform for light integration."""
 
-from __future__ import annotations
-
 import logging
 from typing import Any
 
@@ -14,10 +12,10 @@ from homeassistant.components.light import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
+from .cync_entity import CyncEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,220 +48,36 @@ async def async_setup_entry(
         async_add_entities(new_devices)
 
 
-class CyncRoomEntity(LightEntity):
-    """Representation of a Cync Room Light Entity."""
-
-    _attr_should_poll: bool = False
-
-    def __init__(self, room) -> None:
-        """Initialize the light."""
-        self.room = room
-
-    async def async_added_to_hass(self) -> None:
-        """Run when this Entity has been added to HA."""
-        self.room.register(self.async_write_ha_state)
-
-    async def async_will_remove_from_hass(self) -> None:
-        """Entity being removed from hass."""
-        self.room.reset()
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device registry information for this entity."""
-
-        device_name = (
-            self.room.parent_room
-            if self.room.is_subgroup
-            else f"{self.room.name} ({self.room.home_name})"
-        )
-
-        return DeviceInfo(
-            identifiers={(DOMAIN, device_name)},
-            manufacturer="Cync by Savant",
-            name=device_name,
-            suggested_area=(
-                self.room.parent_room
-                if self.room.is_subgroup
-                else self.room.name
-            ),
-        )
-
-    @property
-    def icon(self) -> str | None:
-        """Icon of the entity."""
-        if self.room.is_subgroup:
-            return "mdi:lightbulb-group-outline"
-        else:
-            return "mdi:lightbulb-group"
-
-    @property
-    def unique_id(self) -> str:
-        """Return Unique ID string."""
-        uid = (
-            "cync_room_"
-            + "-".join(self.room.switches)
-            + "_"
-            + "-".join(self.room.subgroups)
-        )
-        return uid
-
-    @property
-    def name(self) -> str:
-        """Return the name of the room."""
-        return self.room.name
-
-    @property
-    def is_on(self) -> bool | None:
-        """Return true if light is on."""
-        return self.room.power_state
-
+class CyncBaseLightEntity(LightEntity, CyncEntity):
     @property
     def brightness(self) -> int | None:
         """Return the brightness of this room between 0..255."""
-        return round(self.room.brightness * 255 / 100)
+        return round(self.entity.brightness * 255 / 100)
 
     @property
     def max_mireds(self) -> int:
         """Return minimum supported color temperature."""
-        return self.room.max_mireds
+        return self.entity.max_mireds
 
     @property
     def min_mireds(self) -> int:
         """Return maximum supported color temperature."""
-        return self.room.min_mireds
+        return self.entity.min_mireds
 
     @property
     def color_temp(self) -> int | None:
         """Return the color temperature of this light in mireds for HA."""
         return self.max_mireds - round(
-            (self.max_mireds - self.min_mireds) * self.room.color_temp / 100
-        )
-
-    @property
-    def rgb_color(self) -> tuple[int, int, int] | None:
-        """Return the RGB color tuple of this light switch"""
-        return (self.room.rgb["r"], self.room.rgb["g"], self.room.rgb["b"])
-
-    @property
-    def supported_color_modes(self) -> set[str] | None:
-        """Return list of available color modes."""
-
-        modes: set[ColorMode | str] = set()
-
-        if self.room.support_color_temp:
-            modes.add(ColorMode.COLOR_TEMP)
-        if self.room.support_rgb:
-            modes.add(ColorMode.RGB)
-        if self.room.support_brightness:
-            modes.add(ColorMode.BRIGHTNESS)
-        if not modes:
-            modes.add(ColorMode.ONOFF)
-
-        return modes
-
-    @property
-    def color_mode(self) -> str | None:
-        """Return the active color mode."""
-
-        if self.room.support_color_temp:
-            if self.room.support_rgb and self.room.rgb["active"]:
-                return ColorMode.RGB
-            else:
-                return ColorMode.COLOR_TEMP
-        if self.room.support_brightness:
-            return ColorMode.BRIGHTNESS
-        else:
-            return ColorMode.ONOFF
-
-    async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn on the light."""
-        await self.room.turn_on(
-            kwargs.get(ATTR_RGB_COLOR),
-            kwargs.get(ATTR_BRIGHTNESS),
-            kwargs.get(ATTR_COLOR_TEMP),
-        )
-
-    async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn off the light."""
-        await self.room.turn_off()
-
-
-class CyncSwitchEntity(LightEntity):
-    """Representation of a Cync Switch Light Entity."""
-
-    _attr_should_poll: bool = False
-
-    def __init__(self, cync_switch) -> None:
-        """Initialize the light."""
-        self.cync_switch = cync_switch
-
-    async def async_added_to_hass(self) -> None:
-        """Run when this Entity has been added to HA."""
-        self.cync_switch.register(self.async_write_ha_state)
-
-    async def async_will_remove_from_hass(self) -> None:
-        """Entity being removed from hass."""
-        self.cync_switch.reset()
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device registry information for this entity."""
-        device_name = (
-            self.cync_switch.room.name + f"({self.cync_switch.home_name})"
-        )
-        return DeviceInfo(
-            identifiers={(DOMAIN, device_name)},
-            manufacturer="Cync by Savant",
-            name=(device_name),
-            suggested_area=self.cync_switch.room.name,
-        )
-
-    @property
-    def unique_id(self) -> str:
-        """Return Unique ID string."""
-        return "cync_switch_" + self.cync_switch.device_id
-
-    @property
-    def name(self) -> str:
-        """Return the name of the switch."""
-        return self.cync_switch.name
-
-    @property
-    def is_on(self) -> bool | None:
-        """Return true if light is on."""
-        return self.cync_switch.power_state
-
-    @property
-    def brightness(self) -> int | None:
-        """Return the brightness of this switch between 0..255."""
-        return round(self.cync_switch.brightness * 255 / 100)
-
-    @property
-    def max_mireds(self) -> int:
-        """Return minimum supported color temperature."""
-        return self.cync_switch.max_mireds
-
-    @property
-    def min_mireds(self) -> int:
-        """Return maximum supported color temperature."""
-        return self.cync_switch.min_mireds
-
-    @property
-    def color_temp(self) -> int | None:
-        """Return the color temperature of this light in mireds for HA."""
-        return self.max_mireds - round(
-            (self.max_mireds - self.min_mireds)
-            * self.cync_switch.color_temp
-            / 100
+            (self.max_mireds - self.min_mireds) * self.entity.color_temp / 100
         )
 
     @property
     def rgb_color(self) -> tuple[int, int, int] | None:
         """Return the RGB color tuple of this light switch"""
         return (
-            self.cync_switch.rgb["r"],
-            self.cync_switch.rgb["g"],
-            self.cync_switch.rgb["b"],
+            self.entity.rgb["r"],
+            self.entity.rgb["g"],
+            self.entity.rgb["b"],
         )
 
     @property
@@ -272,11 +86,11 @@ class CyncSwitchEntity(LightEntity):
 
         modes: set[ColorMode | str] = set()
 
-        if self.cync_switch.support_color_temp:
+        if self.entity.support_color_temp:
             modes.add(ColorMode.COLOR_TEMP)
-        if self.cync_switch.support_rgb:
+        if self.entity.support_rgb:
             modes.add(ColorMode.RGB)
-        if self.cync_switch.support_brightness:
+        if self.entity.support_brightness:
             modes.add(ColorMode.BRIGHTNESS)
         if not modes:
             modes.add(ColorMode.ONOFF)
@@ -287,24 +101,63 @@ class CyncSwitchEntity(LightEntity):
     def color_mode(self) -> str | None:
         """Return the active color mode."""
 
-        if self.cync_switch.support_color_temp:
-            if self.cync_switch.support_rgb and self.cync_switch.rgb["active"]:
+        if self.entity.support_color_temp:
+            if self.entity.support_rgb and self.entity.rgb["active"]:
                 return ColorMode.RGB
-            else:
-                return ColorMode.COLOR_TEMP
-        if self.cync_switch.support_brightness:
+            return ColorMode.COLOR_TEMP
+        if self.entity.support_brightness:
             return ColorMode.BRIGHTNESS
-        else:
-            return ColorMode.ONOFF
+        return ColorMode.ONOFF
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the light."""
-        await self.cync_switch.turn_on(
+        await self.entity.turn_on(
             kwargs.get(ATTR_RGB_COLOR),
             kwargs.get(ATTR_BRIGHTNESS),
             kwargs.get(ATTR_COLOR_TEMP),
         )
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn off the light."""
-        await self.cync_switch.turn_off()
+
+class CyncSwitchEntity(CyncBaseLightEntity):
+    """Representation of a Cync Switch Light Entity."""
+
+    _type: str = "cync_switch_"
+
+
+class CyncRoomEntity(CyncBaseLightEntity):
+    """Representation of a Cync Room Light Entity."""
+
+    _type: str = "cync_room_"
+
+    @property
+    def device_name(self) -> str:
+        if self.entity.is_subgroup:
+            return self.entity.parent_room
+        return f"{self.entity.name} ({self.entity.home_name})"
+
+    @property
+    def area(self) -> str:
+        if self.entity.is_subgroup:
+            return self.entity.parent_room
+
+        return self.entity.name
+
+    @property
+    def icon(self) -> str | None:
+        """Icon of the entity."""
+        if self.entity.is_subgroup:
+            return "mdi:lightbulb-group-outline"
+        return "mdi:lightbulb-group"
+
+    @property
+    def unique_id(self) -> str:
+        """Return Unique ID string."""
+        # TODO will this cause room IDs to change
+        # when their contents change? Seems wrong.
+        uid = (
+            self._type
+            + "-".join(self.entity.switches)
+            + "_"
+            + "-".join(self.entity.subgroups)
+        )
+        return uid
