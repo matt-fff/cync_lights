@@ -6,9 +6,9 @@ authors = [
     { name = "nikshriv" },
     { name = "Matt White", email = "mail@matt-w.net" }
 ]
-dependencies = ["homeassistant~=2021.12.10"]
+dependencies = ["homeassistant~=2023.7.3"]
 readme = "README.md"
-requires-python = ">= 3.8"
+requires-python = ">= 3.10"
 
 [build-system]
 requires = ["hatchling"]
@@ -75,6 +75,7 @@ exclude = [
 ]
 reportUnknownMemberType = false
 reportPrivateImportUsage = false
+reportOptionalMemberAccess = false
 typeCheckingMode = "basic"
 stubPath = "typestubs"
 pythonVersion = "3.10"

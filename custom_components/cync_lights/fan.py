@@ -39,7 +39,7 @@ async def async_setup_entry(
 class CyncFanEntity(FanEntity):
     """Representation of a Cync Fan Switch Entity."""
 
-    should_poll = False
+    _attr_should_poll: bool = False
 
     def __init__(self, cync_switch) -> None:
         """Initialize the light."""

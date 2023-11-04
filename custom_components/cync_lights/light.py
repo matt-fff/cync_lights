@@ -53,7 +53,7 @@ async def async_setup_entry(
 class CyncRoomEntity(LightEntity):
     """Representation of a Cync Room Light Entity."""
 
-    should_poll = False
+    _attr_should_poll: bool = False
 
     def __init__(self, room) -> None:
         """Initialize the light."""
@@ -191,7 +191,7 @@ class CyncRoomEntity(LightEntity):
 class CyncSwitchEntity(LightEntity):
     """Representation of a Cync Switch Light Entity."""
 
-    should_poll = False
+    _attr_should_poll: bool = False
 
     def __init__(self, cync_switch) -> None:
         """Initialize the light."""

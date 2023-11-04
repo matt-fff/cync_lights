@@ -105,7 +105,7 @@ class CyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors["base"] = "unknown"
         else:
             self.data = info
-            return await self.async_step_finish_setup()
+            return await self._async_finish_setup()
 
         return self.async_show_form(
             step_id="user", data_schema=STEP_USER_DATA_SCHEMA, errors=errors
@@ -299,9 +299,7 @@ class CyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             await self.hass.config_entries.async_reload(
                 existing_entry.entry_id
             )
-            return self.hass.config_entries.async_abort(
-                reason="reauth_successful"
-            )
+            return self.async_abort(reason="reauth_successful")
 
     @staticmethod
     @callback
@@ -330,9 +328,9 @@ class CyncOptionsFlowHandler(config_entries.OptionsFlow):
 
         data_schema = vol.Schema(
             {
-                vol.Required("re-authenticate", default="No"): vol.In(
-                    ["Yes", "No"]
-                ),
+                vol.Required(
+                    "re-authenticate", default="No"  # pyright: ignore
+                ): vol.In(["Yes", "No"]),
             }
         )
 
@@ -350,16 +348,16 @@ class CyncOptionsFlowHandler(config_entries.OptionsFlow):
                 self.cync_hub, self.entry.data["user_input"]
             )
             info["data"]["cync_config"] = await self.cync_hub.get_cync_config()
+            self.data = info
         except TwoFactorCodeRequired:
             return await self.async_step_two_factor_code()
         except InvalidAuth:
             errors["base"] = "invalid_auth"
-        except Exception as e:  # pylint: disable=broad-except
-            _LOGGER.error(str(type(e).__name__) + ": " + str(e))
+        except Exception as exc:  # pylint: disable=broad-except
+            _LOGGER.error(str(type(exc).__name__) + ": " + str(exc))
             errors["base"] = "unknown"
-        else:
-            self.data = info
-            return await self.async_step_select_switches()
+
+        return await self.async_step_select_switches()
 
     async def async_step_two_factor_code(
         self, user_input: dict[str, Any] | None = None

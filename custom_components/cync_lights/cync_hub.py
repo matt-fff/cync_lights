@@ -468,6 +468,7 @@ class CyncHub:
                     + seq.to_bytes(2, "big")
                     + bytes.fromhex("007e00000000f85206000000ffff0000567e")
                 )
+
                 self.loop.call_soon_threadsafe(
                     self.send_request, state_request
                 )
@@ -919,7 +920,7 @@ class CyncHub:
         for dev in self.cync_switches.values():
             dev.publish_update()
         for room in self.cync_rooms.values():
-            dev.publish_update()
+            room.publish_update()
 
     def send_request(self, request):
         async def send():
@@ -1270,79 +1271,41 @@ class CyncRoom:
         else:
             _brightness = 100 if _power_state else 0
         if self.support_color_temp:
-            _color_temp = round(
-                sum(
-                    [
-                        self.hub.cync_switches[device_id].color_temp
-                        for device_id in self.switches_support_color_temp
-                    ]
-                    + [
-                        self.hub.cync_rooms[room_id].color_temp
-                        for room_id in self.groups_support_color_temp
-                    ]
-                )
-                / (
-                    len(self.switches_support_color_temp)
-                    + len(self.groups_support_color_temp)
-                )
-            )
+            color_temps = [
+                self.hub.cync_switches[device_id].color_temp
+                for device_id in self.switches
+                if self.switches_support_color_temp
+            ] + [
+                self.hub.cync_rooms[room_id].color_temp
+                for room_id in self.subgroups
+                if self.groups_support_color_temp
+            ]
+
+            _color_temp = round(sum(color_temps) / len(color_temps))
         if self.support_rgb:
-            _rgb["r"] = round(
-                sum(
-                    [
-                        self.hub.cync_switches[device_id].rgb["r"]
-                        for device_id in self.switches_support_rgb
-                    ]
-                    + [
-                        self.hub.cync_rooms[room_id].rgb["r"]
-                        for room_id in self.groups_support_rgb
-                    ]
-                )
-                / (
-                    len(self.switches_support_rgb)
-                    + len(self.groups_support_rgb)
-                )
-            )
-            _rgb["g"] = round(
-                sum(
-                    [
-                        self.hub.cync_switches[device_id].rgb["g"]
-                        for device_id in self.switches_support_rgb
-                    ]
-                    + [
-                        self.hub.cync_rooms[room_id].rgb["g"]
-                        for room_id in self.groups_support_rgb
-                    ]
-                )
-                / (
-                    len(self.switches_support_rgb)
-                    + len(self.groups_support_rgb)
-                )
-            )
-            _rgb["b"] = round(
-                sum(
-                    [
-                        self.hub.cync_switches[device_id].rgb["b"]
-                        for device_id in self.switches_support_rgb
-                    ]
-                    + [
-                        self.hub.cync_rooms[room_id].rgb["b"]
-                        for room_id in self.groups_support_rgb
-                    ]
-                )
-                / (
-                    len(self.switches_support_rgb)
-                    + len(self.groups_support_rgb)
-                )
-            )
-            _rgb["active"] = True in (
+
+            for key in ("r", "g", "b"):
+                values = [
+                    self.hub.cync_switches[device_id].rgb[key]
+                    for device_id in self.switches
+                    if self.switches_support_rgb
+                ] + [
+                    self.hub.cync_rooms[room_id].rgb[key]
+                    for room_id in self.subgroups
+                    if self.groups_support_rgb
+                ]
+                _rgb[key] = round(sum(values) / (len(values)))
+
+            _rgb["active"] = any(
                 [
                     self.hub.cync_switches[device_id].rgb["active"]
-                    for device_id in self.switches_support_rgb
+                    for device_id in self.switches
+                    if self.switches_support_rgb
                 ]
                 + [
                     self.hub.cync_rooms[room_id].rgb["active"]
-                    for room_id in self.groups_support_rgb
+                    for room_id in self.subgroups
+                    if self.groups_support_rgb
                 ]
             )
 

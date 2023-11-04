@@ -48,7 +48,7 @@ async def async_setup_entry(
 class CyncMotionSensorEntity(BinarySensorEntity):
     """Representation of a Cync Motion Sensor."""
 
-    should_poll = False
+    _attr_should_poll: bool = False
 
     def __init__(self, motion_sensor) -> None:
         """Initialize the sensor."""
@@ -104,7 +104,7 @@ class CyncMotionSensorEntity(BinarySensorEntity):
 class CyncAmbientLightSensorEntity(BinarySensorEntity):
     """Representation of a Cync Ambient Light Sensor."""
 
-    should_poll = False
+    _attr_should_poll: bool = False
 
     def __init__(self, ambient_light_sensor) -> None:
         """Initialize the sensor."""
